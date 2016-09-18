@@ -15,12 +15,13 @@
                              var counter = 0;
                              var canvas = document.getElementById('canvas');
                              var context = canvas.getContext('2d');
-                             var buffer = 20;
-
+                             var buffer = 30;
+//TODO: Split this up
                              $scope.makeLights = function(color_arrays) {
                                  var num_stars = $scope.num_stars;
                                  var star_size = $scope.star_size;
                                  var script_number = $scope.script_number;
+                                 canvas.num_script = script_number;
 
                                  context.font = star_size + "px Georgia";
 
@@ -47,44 +48,50 @@
                                var w = 0 + buffer;
                                var h = 0 + buffer;
                                while (w < width - step_size){
-                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillStyle = (mapper(color_array, star, cycle));
                                  context.fillText("*",w, h);
                                  star++;
                                  w = w + step_size;
                                }
                                while (h < height - step_size) {
-                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillStyle = (mapper(color_array, star, cycle));
                                  context.fillText("*", w, h);
                                  star++;
                                  h = h + step_size;
                                }
                                while (w > buffer) {
-                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillStyle = (mapper(color_array, star, cycle));
                                  context.fillText("*", w, h);
                                  star++;
                                  w = w - step_size;
                                }
                                while (h > buffer){
-                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillStyle = (mapper(color_array, star, cycle));
                                  context.fillText("*", w, h);
                                  star++;
                                  h = h -step_size;
                                }
                              }
+                             function mapper(array, index, counter) {
+                                return array[(index + counter) % array.length]
+                             }
 
                              $(function() {
                                  $('button').click(function() {
-                                   //var user = $('#txtUsername').val();
+                                   //var data = {"script_num": $scope.script_number};
                                     context.clearRect(0, 0, canvas.width, canvas.height);
                                      $.ajax({
                                          url: '/getScript',
-                                         data: $('form').serialize(),
+                                         //contentType: 'application/json',
+                                         //dataType : 'json',
+                                         //data : JSON.stringify(data),
                                          type: 'POST',
                                          success: function(response) {
-                                             console.log(response);
-                                             getInput();
+                                             console.log(response.color_arrays);
+
                                              var json = JSON.parse(response);
-                                             $scope.makeLights(json.color_arrays);
+                                             console.log(json.color_arrays);
+                                             $scope.makeLights(json.color_arrays);//json.color_arrays);
 
                                          },
                                          error: function(error) {
@@ -94,13 +101,25 @@
                                  });
                              });
 
-                             function getInput() {
-                               console.log(myCodeMirror.getValue());
-                             }
+
+                             $("p").on("click",function(){
+                                   var data = {"text_input": myCodeMirror.getValue()};
+                                  $.ajax({
+                                  type: 'POST',
+                                  contentType: 'application/json',
+                                  dataType : 'json',
+                                  data : JSON.stringify(data),
+                                  url: "/upload",
+                                  success: function(resultData) { console.log("Save Complete") }
+                                  ,error : function(result){
+                                    console.log(result);
+                                  }
+                                });
+                             });
 
 
                              var myCodeMirror = CodeMirror(document.body, {
-                               value: 'def getColors(): \n  gradient =  ["#e59400","ffa500", "#ffa500", "#ffae19", "#ffb732", "#ffc04c", "#ffd27f", "#ffe4b2", "#000000"] \n  gradient_list = gradient * 5 \n  return gradient_list',
+                               value: 'def getColors(): \n  gradient =  ["#e59400","ffa500", "#ffa500", "#ffae19", "#ffb732", "#ffc04c", "#ffd27f", "#ffe4b2", "#000000"] \n  gradient_list = [gradient] * 5 \n  return gradient_list',
                                mode:  "python",
                                lineNumbers: true,
                              });
@@ -109,6 +128,7 @@
                              canvas.width = 600;
                              canvas.height = 400;
                              canvas.buffer = 30;
+
                              context.globalAlpha = 1.0;
                              context.beginPath();
 
@@ -121,7 +141,6 @@
 		<link rel="stylesheet" href="/static/css/style.css" />
     </head>
     <body ng-app="DJApp">
-
       <div ng-app="simulation">
       <div ng-controller='mycontroller'>
               <h2 name="mini_header">Your Algorithm:</h2>
@@ -129,10 +148,9 @@
                     <input ng-model="num_stars"  size="40" placeholder="Num Stars" required type="number" min="10" max="100">
                     <input ng-model="star_size"  size="10" placeholder="Star Size" required type="number" min="5" max="30">
                     <input ng-model="script_number"  size="3" placeholder="Script Number" class="form-control" required type="number" min="0" max="5">
-
                     <button class="btn btn-lg btn-primary btn-block" type="button">Run Script </button>
-                  </form>
                   <canvas id="canvas" style="border: 1px gray solid; float: left"></canvas>
+                  <p id="b1">Click here to run your Code!</p>
                   </div>
                   <div style="clear: both"/>
 			 <div ng-view></div>

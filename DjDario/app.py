@@ -1,6 +1,7 @@
 from flask import Flask, send_file, session, redirect, url_for, escape, request
 from colorRouter import routeScripts
 import json
+from writeUserCode import writePythonScript
 
 app = Flask(__name__)
 
@@ -8,24 +9,21 @@ app = Flask(__name__)
 def index():
     return send_file("templates/index.html")
 
-@app.route('/getScript', methods=['POST', 'GET'])
+@app.route('/getScript', methods=['POST'])
 def giveColors():
+    #jData= request.get_json() TODO- choose which alg
     data = {}
-    data['color_arrays'] = routeScripts(1)
+    data['color_arrays'] = routeScripts(2)
     json_data = json.dumps(data)
     return json_data;
 
-#Uploader for photos
-""""
-@app.route('/upload', methods=['GET', 'POST'])
+
+@app.route('/upload', methods=['POST'])
 def upload():
-    if request.method == 'POST' and text in request.files:
-        filename = photos.save(request.files['photo'])
-        rec = ..(filename=filename, user=g.user.id)
-        rec.store()
-        flash("Photo saved.")
-        return redirect(url_for('show', id=rec.id))
-    return render_template('upload.html')
-"""
+    jsonData= request.get_json()
+    writePythonScript(jsonData['text_input'])
+    return "posted"
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
