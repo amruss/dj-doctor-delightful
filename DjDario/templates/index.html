@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+    <head>
+    <title>DJ Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+		<script src="http://code.angularjs.org/1.5.3/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script name="main_script">
+      angular.module('DJApp', [])
+            .controller('mycontroller', function($scope) {
+                             var counter = 0;
+                             var canvas = document.getElementById('canvas');
+                             var context = canvas.getContext('2d');
+                             var buffer = 20;
+
+                             $scope.makeLights = function(color_arrays) {
+                                 var num_stars = $scope.num_stars;
+                                 var star_size = $scope.star_size;
+                                 var script_number = $scope.script_number;
+
+                                 context.font = star_size + "px Georgia";
+
+                                 $scope.num_stars = '';
+                                 $scope.star_size = '';
+                                 $scope.script_number = '';
+
+                                 draw(num_stars, script_number, color_arrays);
+                             };
+
+                             function draw(num_stars, script_number, color_arrays) {
+                               var cycle = 0;
+                               setInterval(function() {
+                                 context.clearRect(0,0,canvas.width,canvas.height);
+                                  var color_array = color_arrays[cycle % color_arrays.length];
+                                   drawStars(canvas.width - buffer, canvas.height - buffer, cycle, buffer, num_stars, color_array);
+                                   cycle = (cycle + 1);
+                                 }, 120);
+                             }
+
+                             function drawStars(width, height, cycle, buffer, num_stars, color_array){ //could pass in whether you want it to go left or right, switch order of h and w
+                               var step_size = 2 * (width + height - 4*buffer) / num_stars;
+                               var star = 0;
+                               var w = 0 + buffer;
+                               var h = 0 + buffer;
+                               while (w < width - step_size){
+                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillText("*",w, h);
+                                 star++;
+                                 w = w + step_size;
+                               }
+                               while (h < height - step_size) {
+                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillText("*", w, h);
+                                 star++;
+                                 h = h + step_size;
+                               }
+                               while (w > buffer) {
+                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillText("*", w, h);
+                                 star++;
+                                 w = w - step_size;
+                               }
+                               while (h > buffer){
+                                 context.fillStyle = (color_array[star % color_array.length]);
+                                 context.fillText("*", w, h);
+                                 star++;
+                                 h = h -step_size;
+                               }
+                             }
+
+                             $(function() {
+                                 $('button').click(function() {
+                                   //var user = $('#txtUsername').val();
+                                    context.clearRect(0, 0, canvas.width, canvas.height);
+                                     $.ajax({
+                                         url: '/getScript',
+                                         data: $('form').serialize(),
+                                         type: 'POST',
+                                         success: function(response) {
+                                             console.log(response);
+                                             var json = JSON.parse(response);
+                                             $scope.makeLights(json.color_arrays);
+
+                                         },
+                                         error: function(error) {
+                                             console.log(error);
+                                         }
+                                     });
+                                 });
+                             });
+
+                             // setup
+                             canvas.width = 600;
+                             canvas.height = 400;
+                             canvas.buffer = 30;
+                             context.globalAlpha = 1.0;
+                             context.beginPath();
+                             //draw($scope.data)
+                           });
+                    </script>
+
+
+
+		<link rel="stylesheet" href="/static/css/style.css" />
+    </head>
+    <body ng-app="DJApp">
+
+      <div ng-app="simulation">
+      <div ng-controller='mycontroller'>
+              <h2>Your Algorithm:</h2>
+                    <form action='/getScript' role="form"><!--ng-submit="runScript()"-->
+                    <input ng-model="num_stars"  size="40" placeholder="Num Stars" required type="number" min="10" max="100">
+                    <input ng-model="star_size"  size="10" placeholder="Star Size" required type="number" min="5" max="30">
+                    <input ng-model="script_number"  size="3" placeholder="Script Number" class="form-control" required type="number" min="0" max="5">
+
+                    <button class="btn btn-lg btn-primary btn-block" type="button">Run Script </button>
+                  </form>
+                  <canvas id="canvas" style="border: 1px gray solid; float: left"></canvas>
+                  </div>
+                  <div style="clear: both"/>
+      </div>
+			 <div ng-view></div>
+    </body>
+</html>
