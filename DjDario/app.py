@@ -16,7 +16,7 @@ def giveColors():
     return json_data;
 
 #Uploader for photos
-
+""""
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST' and text in request.files:
@@ -26,6 +26,6 @@ def upload():
         flash("Photo saved.")
         return redirect(url_for('show', id=rec.id))
     return render_template('upload.html')
-
+"""
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
